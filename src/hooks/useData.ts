@@ -1,34 +1,22 @@
 import { useEffect, useState } from "react";
 import apiClient from "../services/api-client";
 import { CanceledError } from "axios";
-export interface Platform {
-    id:number;
-    name:string;
-    slug:string;
-}
 
-export interface Game {
-    id: number;
-    name: string;
-    background_image:string;
-    metacritic:number;
-    parent_platforms:{platform:Platform}[];
+export interface FetchResponse<T> {
+    count?:number;
+    results: T[];
 }
-export interface FetchGameResponse {
-    results: Game[];
-}
-const useGames = () => {
-
-    const [games, setGames] = useState<Game[]>([]);
+const useData =<T> (endpoint:string) => {
+    const [data, setData] = useState<T[]>([]);
     const [error, setError] = useState("");
     const[loadingSkelaton, setLoadingSkelaton] = useState(true);
     useEffect(() => {
         const controller = new AbortController();
 
         apiClient
-            .get<FetchGameResponse>("/games", { signal: controller.signal })
+            .get<FetchResponse<T>>(endpoint, { signal: controller.signal })
             .then((res) => {
-                setGames(res.data.results);
+                setData(res.data.results);
                 setLoadingSkelaton(false);
             })
             .catch((err) => {
@@ -38,7 +26,6 @@ const useGames = () => {
             });
         return () => controller.abort();
     }, []);
-    return { games, error,loadingSkelaton };
+    return { data, error,loadingSkelaton };
 }
-
-export default useGames;
+export default useData;
